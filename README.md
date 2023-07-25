@@ -27,6 +27,8 @@ Exécuter le script suivante pour créer la base nommée **db_ycyw**.
 
 ### Proof of Concept Chat en ligne
 
+Le chat en ligne repose sur la plateforme de messagerie TalkJS.
+
 Installer node_modules :
 
 > `npm install`
