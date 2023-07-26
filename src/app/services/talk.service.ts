@@ -1,45 +1,67 @@
-import { Injectable } from '@angular/core';
-import Talk from 'talkjs';
+import { Injectable } from "@angular/core";
+import Talk from "talkjs";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class TalkService {
   // Déclare une propriété privée qui stockera l'utilisateur actuel de TalkJS.
   private currentUser!: Talk.User;
+  private otherApplicationUser!: Talk.User;
+
+  // Définit un objet représentant les informations du support client à des fins de démonstration.
+  private user_support = {
+    id: "100",
+    name: "Alice support",
+    email: "support@example.com",
+    photoUrl: "../assets/avatar_ycyw.png",
+    welcomeMessage: "Hey, how can I help?",
+    role: "support",
+  };
+
+  // Définit un objet représentant les informations d'un client à des fins de démonstration.
+  private user_client = {
+    id: "101",
+    name: "Mario",
+    email: "Client@openclassrooms.com",
+    photoUrl: "../assets/avatar_oc.png",
+    welcomeMessage: "Hey there! How are you? :-)",
+    role: "default",
+  };
 
   // Méthode pour créer un nouvel utilisateur TalkJS
-  async createUser(applicationUser: any) {
+  async createUser(applicationUser: Talk.User) {
     await Talk.ready;
     return new Talk.User({
       id: applicationUser.id,
-      name: applicationUser.username,
+      name: applicationUser.name,
       photoUrl: applicationUser.photoUrl,
-      configuration: 'demo_default',
+      configuration: "demo_default",
       role: applicationUser.role,
     });
   }
 
   // Méthode pour créer une session TalkJS avec l'utilisateur actuel
-  async createCurrentSession() {
+  // le booléen 'support' définit le type d'utilisateur : vrai = support client; faux = client
+  async createCurrentSession(isSupport: boolean) {
     await Talk.ready;
-    // Définit un objet représentant les informations de l'utilisateur actuel à des fins de démonstration.
-    const user = {
-      id: 1,
-      username: 'Mario',
-      email: 'Client@openclassrooms.com',
-      photoUrl: '../assets/avatar_oc.png',
-      welcomeMessage: 'Hey there! How are you? :-)',
-      role: 'default',
-    };
-
-    // Crée un nouvel utilisateur TalkJS en utilisant les informations fournies.
-    this.currentUser = await this.createUser(user);
+    console.log(isSupport);
+    if (isSupport) {
+      // Crée un utilisateur TalkJS de type support en utilisant l'objet représentant les infos du support.
+      this.currentUser = await this.createUser(this.user_support);
+      // Initiliase l'autre utilisateur qui sera lié à la conversation, ici de type client
+      this.otherApplicationUser = this.user_client;
+    } else {
+      // Crée un utilisateur TalkJS de type Client en utilisant l'objet représentant les infos du Client
+      this.currentUser = await this.createUser(this.user_client);
+      // Initiliase l'autre utilisateur qui sera lié à la conversation, ici de type support
+      this.otherApplicationUser = this.user_support;
+    }
 
     // Crée une nouvelle session TalkJS avec l'ID d'application spécifié et l'utilisateur actuel.
     // l'ID sera à remplacer... un ID de démo est utilisé
     const session = new Talk.Session({
-      appId: 'tz6zaHZs',
+      appId: "tz6zaHZs",
       me: this.currentUser,
     });
     // Renvoie la session nouvellement créée.
@@ -69,20 +91,10 @@ export class TalkService {
 
   // Méthode pour créer une boîte de réception TalkJS avec une conversation spécifiée.
   async createInbox(session: Talk.Session) {
-    // Définit un objet représentant les informations d'un autre utilisateur (à des fins de démonstration).
-    const otherApplicationUser = {
-      id: 5,
-      username: 'Alice support',
-      email: 'support@example.com',
-      photoUrl: '../assets/avatar_ycyw.png',
-      welcomeMessage: 'Hey, how can I help?',
-      role: 'support',
-    };
-
     // Obtient ou crée une conversation entre l'utilisateur actuel et l'autre utilisateur.
     const conversation = await this.getOrCreateConversation(
       session,
-      otherApplicationUser
+      this.otherApplicationUser
     );
 
     // Crée une boîte de réception TalkJS et sélectionne la conversation créée précédemment.
